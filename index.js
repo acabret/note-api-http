@@ -1,5 +1,7 @@
 const express = require("express")
+const cors = require("cors")
 const app = express()
+
 const puerto = 3000
 
 let tareas = [
@@ -15,6 +17,7 @@ function nuevaId(){
 }
 
 app.use(express.json())
+app.use(cors())
 
 app.get("/api/info", (request, response) => {
     response.status(200).json({author:"fernando", description: "api de prueba basada en el módulo http de node"})
@@ -27,6 +30,7 @@ app.get("/api/tareas", (request, response) => {
 })
 
 app.post("/api/tareas", (request, response) => {
+    console.log("recibiendo tarea", request.body);
 
     if(!request.body.nombre){
         response.status(400).json({status:400, message: "petición hecha de manera incorrecta"})
@@ -46,7 +50,6 @@ app.post("/api/tareas", (request, response) => {
 
 app.delete("/api/tareas/:id", (request, response) => {
     const id = request.params.id
-    console.log(id);
  
     if(isNaN(id))
     {
@@ -101,6 +104,35 @@ app.get("/api/tareas/:id", (request, response) => {
     response.status(200).json({status:200, message: "se manda una tarea", payload:tareaEncontrada})
 
 })
+
+
+app.patch("/api/tareas/:id", (request, response) => {
+    const id = request.params.id
+
+    if(isNaN(id))
+    {
+        response.status(400).json({status:400, message: "parámetro inválido"})
+        return;
+    }
+        
+    if(!(typeof request.body.completado == "boolean")){
+        response.status(400).json({status:400, message: "parámetro inválido"})
+        return;
+    }
+
+    const tareaEncontrada = tareas.find((tarea) => tarea.id == id)
+
+    if(!tareaEncontrada){
+        response.status(404).json({status:404, message: "no existe tarea con esa id"})
+        return;
+    }
+
+    tareaEncontrada.completado = request.body.completado
+
+    response.status(200).json({status:200, message: "se modifico la completitud de la tarea", payload:tareaEncontrada})
+
+})
+
 
 
 
